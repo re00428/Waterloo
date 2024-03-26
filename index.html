@@ -132,24 +132,28 @@ document.addEventListener("DOMContentLoaded", async function() {
         return corrections;
     }
 
-    // Function to calculate the Levenshtein distance between two words
-    function calculateEditDistance(word1, word2) {
-        const dp = Array.from({ length: word1.length + 1 }, (_, i) => [i]);
-        dp[0] = Array.from({ length: word2.length + 1 }, (_, i) => i);
-
-        for (let i = 1; i <= word1.length; i++) {
-            for (let j = 1; j <= word2.length; j++) {
-                const cost = word1[i - 1] === word2[j - 1] ? 0 : 1;
-                dp[i][j] = Math.min(
-                    dp[i - 1][ - 1][j] + 1, // deletion
-                    dp[i][j - 1] + 1, // insertion
-                    dp[i - 1][j - 1] + cost // substitution
-                );
-            }
-        }
-
-        return dp[word1.length][word2.length];
+// Function to calculate the Levenshtein distance between two words
+function calculateEditDistance(word1, word2) {
+    if (!word1 || !word2) {
+        return -1; // Return -1 if any of the words is undefined or null
     }
+    const dp = Array.from({ length: word1.length + 1 }, (_, i) => [i]);
+    dp[0] = Array.from({ length: word2.length + 1 }, (_, i) => i);
+
+    for (let i = 1; i <= word1.length; i++) {
+        for (let j = 1; j <= word2.length; j++) {
+            const cost = word1[i - 1] === word2[j - 1] ? 0 : 1;
+            dp[i][j] = Math.min(
+                dp[i - 1][j] + 1, // deletion
+                dp[i][j - 1] + 1, // insertion
+                dp[i - 1][j - 1] + cost // substitution
+            );
+        }
+    }
+
+    return dp[word1.length][word2.length];
+}
+
 });
 </script>
 
