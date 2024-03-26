@@ -24,58 +24,126 @@
 </div>
 
 <script>
-document.getElementById("searchForm").addEventListener("submit", async function(event) {
-  event.preventDefault();
-  var searchInput = document.getElementById("searchInput").value.toLowerCase();
-  var searchResults = document.getElementById("searchResults");
-  searchResults.innerHTML = ""; // Clear previous search results
-  
-  console.log("Search input:", searchInput);
-  
-  // Function to fetch content of a subpage
-  async function fetchSubpageContent(subpageLink) {
+// Function to load a dictionary file
+async function loadDictionaryFromFile(file) {
     try {
-      const response = await fetch(subpageLink.href);
-      if (!response.ok) {
-        throw new Error('Failed to fetch');
-      }
-      const content = await response.text();
-      console.log("Content of", subpageLink.href, ":", content);
-      return content.toLowerCase();
+        const response = await fetch(file);
+        if (!response.ok) {
+            throw new Error('Failed to fetch dictionary file');
+        }
+        const words = await response.text();
+        return words.split('\n').map(word => word.trim());
     } catch (error) {
-      console.error('Error fetching subpage content:', error);
-      return ''; // Return empty string on error
+        console.error('Error loading dictionary file:', error);
+        return [];
     }
-  }
-  
-  // Loop through subpage links and fetch their content
-  var subpageLinks = document.querySelectorAll(".subpage-link");
-  console.log("Subpage links:", subpageLinks);
-  var fetchPromises = Array.from(subpageLinks).map(fetchSubpageContent);
-  
-  console.log("Fetch promises:", fetchPromises);
-  
-  // Wait for all fetch requests to complete
-  var contents = await Promise.all(fetchPromises);
-  console.log("Contents of all subpages:", contents);
-  
-  // Perform search after all content is fetched
-  var hasResults = false;
-  subpageLinks.forEach(function(link, index) {
-    var subpageContent = contents[index];
-    if (subpageContent.includes(searchInput)) {
-      var resultLink = document.createElement("a");
-      resultLink.href = link.href;
-      resultLink.textContent = link.textContent;
-      searchResults.appendChild(resultLink);
-      searchResults.appendChild(document.createElement("br")); // Add line break for better separation
-      hasResults = true;
+}
+
+// Function to check if a word exists in the dictionary
+function isWordInDictionary(word, dictionary) {
+    return dictionary.includes(word);
+}
+
+// Function to suggest corrections for misspelled words
+function suggestCorrections(misspelledWord, dictionary) {
+    const corrections = [];
+    dictionary.forEach(word => {
+        if (calculateEditDistance(misspelledWord, word) <= 1) {
+            corrections.push(word);
+        }
+    });
+    return corrections;
+}
+
+// Function to calculate the Levenshtein distance between two words
+function calculateEditDistance(word1, word2) {
+    const dp = Array.from({ length: word1.length + 1 }, (_, i) => [i]);
+    dp[0] = Array.from({ length: word2.length + 1 }, (_, i) => i);
+
+    for (let i = 1; i <= word1.length; i++) {
+        for (let j = 1; j <= word2.length; j++) {
+            const cost = word1[i - 1] === word2[j - 1] ? 0 : 1;
+            dp[i][j] = Math.min(
+                dp[i - 1][j] + 1, // deletion
+                dp[i][j - 1] + 1, // insertion
+                dp[i - 1][j - 1] + cost // substitution
+            );
+        }
     }
-  });
-  
-  if (!hasResults) {
-    searchResults.textContent = "No matching subpages found.";
-  }
+
+    return dp[word1.length][word2.length];
+}
+
+// Function to fetch content of a subpage
+async function fetchSubpageContent(subpageLink) {
+    try {
+        const response = await fetch(subpageLink.href);
+        if (!response.ok) {
+            throw new Error('Failed to fetch');
+        }
+        const content = await response.text();
+        return content.toLowerCase();
+    } catch (error) {
+        console.error('Error fetching subpage content:', error);
+        return ''; // Return empty string on error
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async function() {
+    const dictionaryFile = 'dictionary.txt'; // Replace with the path to your dictionary file
+    const dictionary = await loadDictionaryFromFile(dictionaryFile);
+    
+    document.getElementById("searchForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        var searchInput = document.getElementById("searchInput").value.toLowerCase();
+        var searchResults = document.getElementById("searchResults");
+        searchResults.innerHTML = ""; // Clear previous search results
+
+        // Loop through subpage links and fetch their content
+        var subpageLinks = document.querySelectorAll(".subpage-link");
+        var fetchPromises = Array.from(subpageLinks).map(fetchSubpageContent);
+      
+        // Wait for all fetch requests to complete
+        var contents = await Promise.all(fetchPromises);
+      
+        // Perform search after all content is fetched
+        var hasResults = false;
+        subpageLinks.forEach(function(link, index) {
+            var subpageContent = contents[index];
+            if (subpageContent.includes(searchInput)) {
+                var resultLink = document.createElement("a");
+                resultLink.href = link.href;
+                resultLink.textContent = link.textContent;
+                searchResults.appendChild(resultLink);
+                searchResults.appendChild(document.createElement("br")); // Add line break for better separation
+                hasResults = true;
+            } else if (!isWordInDictionary(searchInput, dictionary)) {
+                var suggestions = suggestCorrections(searchInput, dictionary);
+                if (suggestions.length > 0) {
+                    var suggestionMsg = document.createElement("p");
+                    suggestionMsg.textContent = "Did you mean:";
+                    searchResults.appendChild(suggestionMsg);
+                    suggestions.forEach(function(suggestion) {
+                        var suggestionLink = document.createElement("a");
+                        suggestionLink.href = "#"; // You can set the href to a relevant URL if needed
+                        suggestionLink.textContent = suggestion;
+                        suggestionLink.addEventListener("click", function(event) {
+                            event.preventDefault();
+                            document.getElementById("searchInput").value = suggestion;
+                            document.getElementById("searchForm").dispatchEvent(new Event("submit"));
+                        });
+                        searchResults.appendChild(suggestionLink);
+                        searchResults.appendChild(document.createElement("br")); // Add line break for better separation
+                    });
+                    hasResults = true;
+                }
+            }
+        });
+      
+        if (!hasResults) {
+            searchResults.textContent = "No matching subpages found.";
+        }
+    });
 });
 </script>
 
