@@ -16,12 +16,40 @@
 <div class="container">
   <h2>Main Page</h2>
   <p>Welcome to the main page of our GitHub-like website. Below are some subpages:</p>
-  <ul>
-    <li><a href="subpage1.html">Subpage 1</a></li>
-    <li><a href="subpage2.html">Subpage 2</a></li>
-    <!-- Add more subpage links as needed -->
-  </ul>
+  <form id="searchForm">
+    <input type="text" id="searchInput" placeholder="Enter keywords">
+    <button type="submit">Search</button>
+  </form>
+  <div id="searchResults"></div>
 </div>
+
+<script>
+document.getElementById("searchForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+  var searchInput = document.getElementById("searchInput").value.toLowerCase();
+  var searchResults = document.getElementById("searchResults");
+  searchResults.innerHTML = ""; // Clear previous search results
+  
+  // Loop through subpage links and check for matches
+  var subpageLinks = document.querySelectorAll(".subpage-link");
+  var hasResults = false;
+  subpageLinks.forEach(function(link) {
+    var subpageContent = link.dataset.content.toLowerCase();
+    if (subpageContent.includes(searchInput)) {
+      var resultLink = document.createElement("a");
+      resultLink.href = link.href;
+      resultLink.textContent = link.textContent;
+      searchResults.appendChild(resultLink);
+      searchResults.appendChild(document.createElement("br")); // Add line break for better separation
+      hasResults = true;
+    }
+  });
+  
+  if (!hasResults) {
+    searchResults.textContent = "No matching subpages found.";
+  }
+});
+</script>
 
 </body>
 </html>
