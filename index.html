@@ -30,6 +30,8 @@ document.getElementById("searchForm").addEventListener("submit", async function(
   var searchResults = document.getElementById("searchResults");
   searchResults.innerHTML = ""; // Clear previous search results
   
+  console.log("Search input:", searchInput);
+  
   // Function to fetch content of a subpage
   async function fetchSubpageContent(subpageLink) {
     try {
@@ -38,6 +40,7 @@ document.getElementById("searchForm").addEventListener("submit", async function(
         throw new Error('Failed to fetch');
       }
       const content = await response.text();
+      console.log("Content of", subpageLink.href, ":", content);
       return content.toLowerCase();
     } catch (error) {
       console.error('Error fetching subpage content:', error);
@@ -47,10 +50,14 @@ document.getElementById("searchForm").addEventListener("submit", async function(
   
   // Loop through subpage links and fetch their content
   var subpageLinks = document.querySelectorAll(".subpage-link");
+  console.log("Subpage links:", subpageLinks);
   var fetchPromises = Array.from(subpageLinks).map(fetchSubpageContent);
+  
+  console.log("Fetch promises:", fetchPromises);
   
   // Wait for all fetch requests to complete
   var contents = await Promise.all(fetchPromises);
+  console.log("Contents of all subpages:", contents);
   
   // Perform search after all content is fetched
   var hasResults = false;
