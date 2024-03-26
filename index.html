@@ -24,75 +24,41 @@
 </div>
 
 <script>
-// Function to load a dictionary file
-async function loadDictionaryFromFile(file) {
-    try {
-        const response = await fetch(file);
-        if (!response.ok) {
-            throw new Error('Failed to fetch dictionary file');
-        }
-        const words = await response.text();
-        return words.split('\n').map(word => word.trim());
-    } catch (error) {
-        console.error('Error loading dictionary file:', error);
-        return [];
-    }
-}
-
-// Function to check if a word exists in the dictionary
-function isWordInDictionary(word, dictionary) {
-    return dictionary.includes(word);
-}
-
-// Function to suggest corrections for misspelled words
-function suggestCorrections(misspelledWord, dictionary) {
-    const corrections = [];
-    dictionary.forEach(word => {
-        if (calculateEditDistance(misspelledWord, word) <= 1) {
-            corrections.push(word);
-        }
-    });
-    return corrections;
-}
-
-// Function to calculate the Levenshtein distance between two words
-function calculateEditDistance(word1, word2) {
-    const dp = Array.from({ length: word1.length + 1 }, (_, i) => [i]);
-    dp[0] = Array.from({ length: word2.length + 1 }, (_, i) => i);
-
-    for (let i = 1; i <= word1.length; i++) {
-        for (let j = 1; j <= word2.length; j++) {
-            const cost = word1[i - 1] === word2[j - 1] ? 0 : 1;
-            dp[i][j] = Math.min(
-                dp[i - 1][j] + 1, // deletion
-                dp[i][j - 1] + 1, // insertion
-                dp[i - 1][j - 1] + cost // substitution
-            );
-        }
-    }
-
-    return dp[word1.length][word2.length];
-}
-
-// Function to fetch content of a subpage
-async function fetchSubpageContent(subpageLink) {
-    try {
-        const response = await fetch(subpageLink.href);
-        if (!response.ok) {
-            throw new Error('Failed to fetch');
-        }
-        const content = await response.text();
-        return content.toLowerCase();
-    } catch (error) {
-        console.error('Error fetching subpage content:', error);
-        return ''; // Return empty string on error
-    }
-}
-
 document.addEventListener("DOMContentLoaded", async function() {
     const dictionaryFile = 'text-EE1C735B3B79-1.txt'; // Replace with the path to your dictionary file
     const dictionary = await loadDictionaryFromFile(dictionaryFile);
     
+    // Function to load a dictionary file
+    async function loadDictionaryFromFile(file) {
+        try {
+            const response = await fetch(file);
+            if (!response.ok) {
+                throw new Error('Failed to fetch dictionary file');
+            }
+            const words = await response.text();
+            return words.split('\n').map(word => word.trim());
+        } catch (error) {
+            console.error('Error loading dictionary file:', error);
+            return [];
+        }
+    }
+
+    // Function to fetch content of a subpage
+    async function fetchSubpageContent(subpageLink) {
+        try {
+            const response = await fetch(subpageLink.href);
+            if (!response.ok) {
+                throw new Error('Failed to fetch');
+            }
+            const content = await response.text();
+            console.log("Content of", subpageLink.href, ":", content); // Log content to console
+            return content.toLowerCase();
+        } catch (error) {
+            console.error('Error fetching subpage content:', error);
+            return ''; // Return empty string on error
+        }
+    }
+
     document.getElementById("searchForm").addEventListener("submit", async function(event) {
         event.preventDefault();
         var searchInput = document.getElementById("searchInput").value.toLowerCase();
@@ -117,7 +83,12 @@ document.addEventListener("DOMContentLoaded", async function() {
                 searchResults.appendChild(resultLink);
                 searchResults.appendChild(document.createElement("br")); // Add line break for better separation
                 hasResults = true;
-            } else if (!isWordInDictionary(searchInput, dictionary)) {
+            }
+        });
+      
+        if (!hasResults) {
+            // Check if search input is a misspelled word
+            if (!isWordInDictionary(searchInput, dictionary)) {
                 var suggestions = suggestCorrections(searchInput, dictionary);
                 if (suggestions.length > 0) {
                     var suggestionMsg = document.createElement("p");
@@ -138,12 +109,47 @@ document.addEventListener("DOMContentLoaded", async function() {
                     hasResults = true;
                 }
             }
-        });
+        }
       
         if (!hasResults) {
             searchResults.textContent = "No matching subpages found.";
         }
     });
+
+    // Function to check if a word exists in the dictionary
+    function isWordInDictionary(word, dictionary) {
+        return dictionary.includes(word);
+    }
+
+    // Function to suggest corrections for misspelled words
+    function suggestCorrections(misspelledWord, dictionary) {
+        const corrections = [];
+        dictionary.forEach(word => {
+            if (calculateEditDistance(misspelledWord, word) <= 1) {
+                corrections.push(word);
+            }
+        });
+        return corrections;
+    }
+
+    // Function to calculate the Levenshtein distance between two words
+    function calculateEditDistance(word1, word2) {
+        const dp = Array.from({ length: word1.length + 1 }, (_, i) => [i]);
+        dp[0] = Array.from({ length: word2.length + 1 }, (_, i) => i);
+
+        for (let i = 1; i <= word1.length; i++) {
+            for (let j = 1; j <= word2.length; j++) {
+                const cost = word1[i - 1] === word2[j - 1] ? 0 : 1;
+                dp[i][j] = Math.min(
+                    dp[i - 1][j] + 1, // deletion
+                    dp[i][j - 1] + 1, // insertion
+                    dp[i - 1][j - 1] + cost // substitution
+                );
+            }
+        }
+
+        return dp[word1.length][word2.length];
+    }
 });
 </script>
 
@@ -151,4 +157,11 @@ document.addEventListener("DOMContentLoaded", async function() {
   <h2>Main Page</h2>
   <p> Here are some useful subpages:</p>
   <ul>
-    <
+    <li><a href="subpage1.html" class="subpage-link">Subpage 1</a></li>
+    <li><a href="subpage2.html" class="subpage-link">Subpage 2</a></li>
+    <!-- Add more subpage links as needed -->
+  </ul>
+</div>
+
+</body>
+</html>
