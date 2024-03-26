@@ -39,14 +39,18 @@ document.getElementById("searchForm").addEventListener("submit", async function(
       fetch(subpageLink.href)
         .then(response => response.text())
         .then(content => {
-          subpageLink.dataset.content = content.toLowerCase();
+          return content.toLowerCase();
         })
     );
   }
   
   // Loop through subpage links and fetch their content
   var subpageLinks = document.querySelectorAll(".subpage-link");
-  subpageLinks.forEach(fetchSubpageContent);
+  subpageLinks.forEach(function(link) {
+    fetchSubpageContent(link).then(content => {
+      link.dataset.content = content;
+    });
+  });
   
   // Wait for all fetch requests to complete
   await Promise.all(fetchPromises);
