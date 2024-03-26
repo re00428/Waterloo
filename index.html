@@ -51,7 +51,6 @@ document.addEventListener("DOMContentLoaded", async function() {
                 throw new Error('Failed to fetch');
             }
             const content = await response.text();
-            console.log("Content of", subpageLink.href, ":", content); // Log content to console
             return content.toLowerCase();
         } catch (error) {
             console.error('Error fetching subpage content:', error);
@@ -90,6 +89,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             // Check if search input is a misspelled word
             if (!isWordInDictionary(searchInput, dictionary)) {
                 var suggestions = suggestCorrections(searchInput, dictionary);
+                console.log("Suggestions:", suggestions); // Log suggestions to the console
                 if (suggestions.length > 0) {
                     var suggestionMsg = document.createElement("p");
                     suggestionMsg.textContent = "Did you mean:";
@@ -142,26 +142,4 @@ document.addEventListener("DOMContentLoaded", async function() {
                 const cost = word1[i - 1] === word2[j - 1] ? 0 : 1;
                 dp[i][j] = Math.min(
                     dp[i - 1][j] + 1, // deletion
-                    dp[i][j - 1] + 1, // insertion
-                    dp[i - 1][j - 1] + cost // substitution
-                );
-            }
-        }
-
-        return dp[word1.length][word2.length];
-    }
-});
-</script>
-
-<div class="container">
-  <h2>Main Page</h2>
-  <p> Here are some useful subpages:</p>
-  <ul>
-    <li><a href="subpage1.html" class="subpage-link">Subpage 1</a></li>
-    <li><a href="subpage2.html" class="subpage-link">Subpage 2</a></li>
-    <!-- Add more subpage links as needed -->
-  </ul>
-</div>
-
-</body>
-</html>
+                    dp[i][j - 1
