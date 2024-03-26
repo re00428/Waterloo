@@ -30,35 +30,32 @@ document.getElementById("searchForm").addEventListener("submit", async function(
   var searchResults = document.getElementById("searchResults");
   searchResults.innerHTML = ""; // Clear previous search results
   
-  // Array to store promises for fetching subpage content
-  var fetchPromises = [];
-  
-  // Function to fetch content of a subpage and store the promise in the array
-  function fetchSubpageContent(subpageLink) {
-    fetchPromises.push(
-      fetch(subpageLink.href)
-        .then(response => response.text())
-        .then(content => {
-          return content.toLowerCase();
-        })
-    );
+  // Function to fetch content of a subpage
+  async function fetchSubpageContent(subpageLink) {
+    try {
+      const response = await fetch(subpageLink.href);
+      if (!response.ok) {
+        throw new Error('Failed to fetch');
+      }
+      const content = await response.text();
+      return content.toLowerCase();
+    } catch (error) {
+      console.error('Error fetching subpage content:', error);
+      return ''; // Return empty string on error
+    }
   }
   
   // Loop through subpage links and fetch their content
   var subpageLinks = document.querySelectorAll(".subpage-link");
-  subpageLinks.forEach(function(link) {
-    fetchSubpageContent(link).then(content => {
-      link.dataset.content = content;
-    });
-  });
+  var fetchPromises = Array.from(subpageLinks).map(fetchSubpageContent);
   
   // Wait for all fetch requests to complete
-  await Promise.all(fetchPromises);
+  var contents = await Promise.all(fetchPromises);
   
   // Perform search after all content is fetched
   var hasResults = false;
-  subpageLinks.forEach(function(link) {
-    var subpageContent = link.dataset.content;
+  subpageLinks.forEach(function(link, index) {
+    var subpageContent = contents[index];
     if (subpageContent.includes(searchInput)) {
       var resultLink = document.createElement("a");
       resultLink.href = link.href;
