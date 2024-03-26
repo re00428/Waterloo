@@ -12,3 +12,22 @@
   </header>
 </body>
 </html>
+
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+.main-header {
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.main-header h1 {
+  margin: 0;
+}
+
