@@ -143,3 +143,27 @@ document.addEventListener("DOMContentLoaded", async function() {
                 dp[i][j] = Math.min(
                     dp[i - 1][j] + 1, // deletion
                     dp[i][j - 1
+                                      + 1, // insertion
+                    dp[i - 1][j - 1] + cost // substitution
+                );
+            }
+        }
+
+        return dp[word1.length][word2.length];
+    }
+});
+</script>
+
+<div class="container">
+  <h2>Main Page</h2>
+  <p> Here are some useful subpages:</p>
+  <ul>
+    <li><a href="subpage1.html" class="subpage-link">Subpage 1</a></li>
+    <li><a href="subpage2.html" class="subpage-link">Subpage 2</a></li>
+    <!-- Add more subpage links as needed -->
+  </ul>
+</div>
+
+</body>
+</html>
+
